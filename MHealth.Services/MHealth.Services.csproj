@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MHealth.Abstracts\MHealth.Abstracts.csproj" />
+    <ProjectReference Include="..\MHealth.BusinessEntities\MHealth.BusinessEntities.csproj" />
+    <ProjectReference Include="..\MHealth.DataTransferObjects\MHealth.DataTransferObjects.csproj" />
+    <ProjectReference Include="..\MHealth.SharedDataAccess\MHealth.SharedDataAccess.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -8,7 +8,8 @@ using IdentityServer4.Extensions;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
-using MHealth.IdentityProvider.Models;
+using MHealth.BusinessEntities;
+using MHealth.SharedDataAccess;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -16,6 +17,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace IdentityServerHost.Quickstart.UI
@@ -24,16 +26,16 @@ namespace IdentityServerHost.Quickstart.UI
     [AllowAnonymous]
     public class AccountController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
 
         public AccountController(
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
+            UserManager<AppUser> userManager,
+            SignInManager<AppUser> signInManager,
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider,
@@ -45,6 +47,44 @@ namespace IdentityServerHost.Quickstart.UI
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
             _events = events;
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> Register([FromBody]RegisterInputModel model)
+        {
+            if (ModelState.IsValid)
+            {
+               IdentityResult result = await _userManager.CreateAsync(new AppUser
+                {
+                    FullName = model.FullName,
+                    Email = model.Email,
+                    PhoneNumber = model.PhoneNumber,
+                    PhotoUrl = model.PhotoUrl,
+                    UserName = model.Email,
+                    AddressLine = model.AddressLine,
+                    City = model.City,
+                    Region = model.Region,
+                    Country = model.Country,
+                    Gender = (AppUserGender)model.Gender
+                }, model.Password);
+                if (result.Succeeded)
+                {
+                    var createdUser = await _userManager.FindByNameAsync(model.Email);
+                    if (createdUser != null)
+                    {
+                         await _userManager.AddClaimsAsync(createdUser, new[]
+                        {
+                            new Claim(JwtClaimTypes.Name, model.FullName),
+                            new Claim(JwtClaimTypes.Role, "general_user")
+                        });
+                        return Ok();
+                    }
+                }
+
+                return StatusCode(500);
+            }
+            return BadRequest();
         }
 
         /// <summary>
