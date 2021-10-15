@@ -76,6 +76,7 @@ namespace MHealth.Services
             var entry = _context.Entry<AppUser>(entity);
             entry.State = EntityState.Modified;
             var result = await _context.SaveChangesAsync();
+            dto.Email = entity.Email;
             return result > 0 ? dto : null;
         }
 
